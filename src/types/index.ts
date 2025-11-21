@@ -8,6 +8,8 @@ export interface Movie {
   release_date: string;
   vote_average: number;
   media_type: 'movie';
+  budget?: number;
+  revenue?: number;
 }
 
 export interface TVShow {

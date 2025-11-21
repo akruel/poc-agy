@@ -341,6 +341,47 @@ export const Details: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Movie Info - Only for Movies */}
+          {details.media_type === 'movie' && (
+            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+              <h2 className="text-xl font-bold mb-4">Informações do Filme</h2>
+              <div className="space-y-3">
+                {details.runtime && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Duração</span>
+                    <span className="font-semibold text-white">
+                      {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
+                    </span>
+                  </div>
+                )}
+                {'budget' in details && details.budget && details.budget > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Orçamento</span>
+                    <span className="font-semibold text-white">
+                      ${(details.budget / 1000000).toFixed(1)}M
+                    </span>
+                  </div>
+                )}
+                {'revenue' in details && details.revenue && details.revenue > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Bilheteria</span>
+                    <span className="font-semibold text-white">
+                      ${(details.revenue / 1000000).toFixed(1)}M
+                    </span>
+                  </div>
+                )}
+                {details.status && (
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-800">
+                    <span className="text-gray-400 text-sm">Status</span>
+                    <span className="font-semibold text-sm px-2 py-1 rounded bg-gray-800 text-gray-300">
+                      {details.status === 'Released' ? 'Lançado' : details.status}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
