@@ -44,11 +44,26 @@ export interface WatchProviders {
   buy?: Provider[];
 }
 
+export interface Episode {
+  id: number;
+  name: string;
+  overview: string;
+  air_date: string;
+  episode_number: number;
+  season_number: number;
+  still_path: string | null;
+  vote_average: number;
+}
+
 export type ContentDetails = (Movie | TVShow) & {
   genres: { id: number; name: string }[];
   runtime?: number; // For movies
   episode_run_time?: number[]; // For TV
   number_of_seasons?: number;
+  number_of_episodes?: number;
+  status?: string;
+  last_episode_to_air?: Episode;
+  next_episode_to_air?: Episode;
   credits?: {
     cast: { id: number; name: string; character: string; profile_path: string }[];
   };

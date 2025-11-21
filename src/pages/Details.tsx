@@ -143,6 +143,79 @@ export const Details: React.FC = () => {
             <p className="text-gray-300 leading-relaxed">{details.overview || "Sinopse não disponível."}</p>
           </section>
 
+          {/* Next Episode - Only for TV Shows */}
+          {details.media_type === 'tv' && details.next_episode_to_air && (
+            <section className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-6 rounded-xl border border-purple-500/30">
+              <h2 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="text-purple-400">📺</span> Próximo Episódio
+              </h2>
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-semibold text-lg text-white">{details.next_episode_to_air.name}</h3>
+                  <p className="text-sm text-gray-400">
+                    Temporada {details.next_episode_to_air.season_number} • Episódio {details.next_episode_to_air.episode_number}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-purple-300">
+                  <span className="text-2xl">📅</span>
+                  <div>
+                    <p className="font-semibold">
+                      {new Date(details.next_episode_to_air.air_date).toLocaleDateString('pt-BR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {(() => {
+                        const airDate = new Date(details.next_episode_to_air.air_date);
+                        const today = new Date();
+                        const diffTime = airDate.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays === 0) return 'Estreia hoje!';
+                        if (diffDays === 1) return 'Estreia amanhã!';
+                        if (diffDays > 0) return `Faltam ${diffDays} dias`;
+                        return 'Já disponível';
+                      })()}
+                    </p>
+                  </div>
+                </div>
+                {details.next_episode_to_air.overview && (
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    {details.next_episode_to_air.overview}
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Last Episode - Only for TV Shows that ended */}
+          {details.media_type === 'tv' && !details.next_episode_to_air && details.last_episode_to_air && (
+            <section className="bg-gray-900/50 p-6 rounded-xl border border-gray-700">
+              <h2 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="text-gray-400">📺</span> Último Episódio
+              </h2>
+              <div className="space-y-2">
+                <div>
+                  <h3 className="font-semibold text-white">{details.last_episode_to_air.name}</h3>
+                  <p className="text-sm text-gray-400">
+                    Temporada {details.last_episode_to_air.season_number} • Episódio {details.last_episode_to_air.episode_number}
+                  </p>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Exibido em {new Date(details.last_episode_to_air.air_date).toLocaleDateString('pt-BR')}
+                </p>
+                {details.status && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Status: {details.status === 'Ended' ? 'Série Finalizada' : details.status}
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Cast */}
           {details.credits && details.credits.cast.length > 0 && (
             <section>
@@ -223,6 +296,51 @@ export const Details: React.FC = () => {
               </a>
             )}
           </div>
+
+          {/* TV Show Info - Only for TV Shows */}
+          {details.media_type === 'tv' && (
+            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+              <h2 className="text-xl font-bold mb-4">Informações da Série</h2>
+              <div className="space-y-3">
+                {details.number_of_seasons && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Temporadas</span>
+                    <span className="font-semibold text-white">{details.number_of_seasons}</span>
+                  </div>
+                )}
+                {details.number_of_episodes && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Episódios</span>
+                    <span className="font-semibold text-white">{details.number_of_episodes}</span>
+                  </div>
+                )}
+                {details.episode_run_time && details.episode_run_time.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Duração por ep.</span>
+                    <span className="font-semibold text-white">{details.episode_run_time[0]} min</span>
+                  </div>
+                )}
+                {details.status && (
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-800">
+                    <span className="text-gray-400 text-sm">Status</span>
+                    <span className={`font-semibold text-sm px-2 py-1 rounded ${
+                      details.status === 'Returning Series' 
+                        ? 'bg-green-900/50 text-green-400' 
+                        : details.status === 'Ended' 
+                        ? 'bg-red-900/50 text-red-400'
+                        : 'bg-gray-800 text-gray-300'
+                    }`}>
+                      {details.status === 'Returning Series' 
+                        ? 'Em Exibição' 
+                        : details.status === 'Ended' 
+                        ? 'Finalizada'
+                        : details.status}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
