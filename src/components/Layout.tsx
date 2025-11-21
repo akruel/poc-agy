@@ -1,0 +1,64 @@
+
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Home, Search, List } from 'lucide-react';
+import clsx from 'clsx';
+
+export const Layout: React.FC = () => {
+  const location = useLocation();
+
+  const navItems = [
+    { icon: Home, label: 'Início', path: '/' },
+    { icon: Search, label: 'Buscar', path: '/search' },
+    { icon: List, label: 'Minha Lista', path: '/my-list' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white pb-20 md:pb-0">
+      <header className="bg-gray-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-800">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+            CinePWA
+          </Link>
+          <nav className="hidden md:flex gap-6">
+            {navItems.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path}
+                className={clsx(
+                  "flex items-center gap-2 hover:text-purple-400 transition-colors",
+                  location.pathname === item.path ? "text-purple-500 font-medium" : "text-gray-400"
+                )}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6">
+        <Outlet />
+      </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 pb-safe">
+        <div className="flex justify-around items-center h-16">
+          {navItems.map((item) => (
+            <Link 
+              key={item.path} 
+              to={item.path}
+              className={clsx(
+                "flex flex-col items-center gap-1 text-xs",
+                location.pathname === item.path ? "text-purple-500" : "text-gray-500"
+              )}
+            >
+              <item.icon size={24} />
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </nav>
+    </div>
+  );
+};
