@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { authService } from '../services/auth';
 import { listService } from '../services/listService';
 
 export function JoinListPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState<'loading' | 'input' | 'joining' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'input' | 'confirm' | 'joining' | 'success' | 'error'>('loading');
   const [listName, setListName] = useState<string>('');
   const [memberName, setMemberName] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -18,10 +19,22 @@ export function JoinListPage() {
   useEffect(() => {
     if (!id) return;
     
-    const fetchListName = async () => {
+    const init = async () => {
       try {
+        // Fetch list name
         const name = await listService.getListName(id);
         setListName(name);
+
+        // Check current user
+        const profile = await authService.getUserProfile();
+        if (profile && !profile.isAnonymous) {
+          if (profile.displayName) {
+            setMemberName(profile.displayName);
+            setStatus('confirm');
+            return;
+          }
+        }
+        
         setStatus('input');
       } catch (err) {
         console.error(err);
@@ -30,7 +43,7 @@ export function JoinListPage() {
       }
     };
     
-    fetchListName();
+    init();
   }, [id]);
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -105,6 +118,39 @@ export function JoinListPage() {
               Join List
             </button>
           </form>
+        </div>
+      )}
+
+      {status === 'confirm' && (
+        <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+          <h1 className="text-2xl font-bold mb-4">Join List</h1>
+          <p className="text-gray-300 mb-6">
+            Entrando na lista <span className="font-semibold text-white">"{listName}"</span> como <span className="font-semibold text-primary">{memberName}</span>
+          </p>
+          
+          <div className="mb-6">
+             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              role === 'editor' 
+                ? 'bg-purple-600/20 text-purple-400 border border-purple-500/50' 
+                : 'bg-blue-600/20 text-blue-400 border border-blue-500/50'
+            }`}>
+              {role === 'editor' ? '✏️ Editor' : '👁️ Visualizador'}
+            </span>
+          </div>
+
+          <button
+            onClick={handleJoin}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-md transition-colors mb-3"
+          >
+            Confirmar
+          </button>
+          
+          <button
+            onClick={() => setStatus('input')}
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            Entrar com outro nome
+          </button>
         </div>
       )}
 

@@ -16,6 +16,9 @@ interface ListItemRow {
 
 export const listService = {
   async createList(name: string): Promise<List> {
+    const { data: { user } } = await supabase.auth.getUser();
+    const displayName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.user_metadata?.name;
+
     const { data, error } = await supabase
       .from('lists')
       .insert([{ name }])
@@ -23,6 +26,16 @@ export const listService = {
       .single();
 
     if (error) throw error;
+
+    // Update the owner's member_name if we have a display name
+    if (displayName && user) {
+      await supabase
+        .from('list_members')
+        .update({ member_name: displayName })
+        .eq('list_id', data.id)
+        .eq('user_id', user.id);
+    }
+
     return data;
   },
 

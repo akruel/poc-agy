@@ -71,6 +71,7 @@ export interface Video {
 export interface Genre {
   id: number;
   name: string;
+  character?: string; // Some APIs might return this
 }
 
 export interface Season {
@@ -145,4 +146,15 @@ export interface SeasonDetails {
   id: number;
   poster_path: string | null;
   season_number: number;
+}
+
+export type AuthProvider = 'email';
+
+export interface UserProfile {
+  id: string;
+  email?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  provider?: string;
+  isAnonymous: boolean;
 }

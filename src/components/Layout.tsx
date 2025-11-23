@@ -2,6 +2,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Home, Search, List } from 'lucide-react';
 import clsx from 'clsx';
+import { LoginButton } from './LoginButton';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
@@ -40,6 +41,9 @@ export const Layout: React.FC = () => {
               );
             })}
           </nav>
+          <div className="hidden md:block">
+            <LoginButton />
+          </div>
         </div>
       </header>
 
