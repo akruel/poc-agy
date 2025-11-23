@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { listService } from '../services/listService';
 
 export function JoinListPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'input' | 'joining' | 'success' | 'error'>('loading');
   const [listName, setListName] = useState<string>('');
   const [memberName, setMemberName] = useState<string>('');
   const [error, setError] = useState<string>('');
+  
+  // Extract and validate role from URL
+  const roleParam = searchParams.get('role');
+  const role: 'editor' | 'viewer' = roleParam === 'editor' || roleParam === 'viewer' ? roleParam : 'viewer';
 
   useEffect(() => {
     if (!id) return;
@@ -34,7 +39,7 @@ export function JoinListPage() {
 
     setStatus('joining');
     try {
-      await listService.joinList(id!, memberName);
+      await listService.joinList(id!, memberName, role);
       setStatus('success');
       setTimeout(() => {
         navigate(`/lists/${id}`);
@@ -58,9 +63,23 @@ export function JoinListPage() {
       {status === 'input' && (
         <div className="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold mb-2 text-center">Join List</h1>
-          <p className="text-gray-400 text-center mb-6">
+          <p className="text-gray-400 text-center mb-2">
             You've been invited to join <span className="text-white font-semibold">"{listName}"</span>
           </p>
+          <div className="text-center mb-6">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              role === 'editor' 
+                ? 'bg-purple-600/20 text-purple-400 border border-purple-500/50' 
+                : 'bg-blue-600/20 text-blue-400 border border-blue-500/50'
+            }`}>
+              {role === 'editor' ? '✏️ Editor' : '👁️ Visualizador'}
+            </span>
+            <p className="text-xs text-gray-500 mt-2">
+              {role === 'editor' 
+                ? 'Você poderá adicionar e remover itens desta lista' 
+                : 'Você terá acesso apenas para visualizar esta lista'}
+            </p>
+          </div>
           
           <form onSubmit={handleJoin} className="space-y-4">
             <div>

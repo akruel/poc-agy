@@ -40,6 +40,7 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -74,11 +75,12 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
     loadList();
   }, [id]);
 
-  const handleShare = async () => {
+  const handleShare = async (role: 'editor' | 'viewer') => {
     if (!list) return;
-    const url = listService.getShareUrl(list.id);
+    const url = listService.getShareUrl(list.id, role);
     await navigator.clipboard.writeText(url);
     setCopied(true);
+    setShowShareMenu(false);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -130,7 +132,9 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
             <div className="flex items-center gap-4 text-sm text-gray-400">
               <span>{items.length} items</span>
               <span>•</span>
-              <span className="capitalize">{list.role === 'owner' ? 'Dono' : 'Visualizador'}</span>
+              <span className="capitalize">
+                {list.role === 'owner' ? 'Dono' : list.role === 'editor' ? 'Editor' : 'Visualizador'}
+              </span>
             </div>
             
             {/* Members List */}
@@ -140,11 +144,19 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
                 {members.map(member => (
                   <span 
                     key={member.user_id} 
-                    className="bg-gray-800 px-2 py-1 rounded-full text-xs border border-gray-700 flex items-center gap-1"
+                    className={`px-2 py-1 rounded-full text-xs border flex items-center gap-1 ${
+                      member.role === 'owner' 
+                        ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400' 
+                        : member.role === 'editor'
+                        ? 'bg-purple-600/20 border-purple-500/50 text-purple-400'
+                        : 'bg-blue-600/20 border-blue-500/50 text-blue-400'
+                    }`}
                     title={`Role: ${member.role}`}
                   >
                     {member.member_name || 'Anonymous'}
-                    {member.role === 'owner' && <span className="text-yellow-500">★</span>}
+                    {member.role === 'owner' && <span>★</span>}
+                    {member.role === 'editor' && <span>✏️</span>}
+                    {member.role === 'viewer' && <span>👁️</span>}
                   </span>
                 ))}
               </div>
@@ -152,13 +164,51 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
           </div>
         </div>
         
-        <button
-          onClick={handleShare}
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
-        >
-          {copied ? <Check size={20} className="text-green-500" /> : <Share2 size={20} />}
-          {copied ? 'Copiado!' : 'Compartilhar'}
-        </button>
+        {/* Share Button with Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowShareMenu(!showShareMenu)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            {copied ? <Check size={20} className="text-white" /> : <Share2 size={20} />}
+            {copied ? 'Copiado!' : 'Compartilhar'}
+          </button>
+          
+          {/* Dropdown Menu */}
+          {showShareMenu && (
+            <>
+              {/* Backdrop to close menu */}
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setShowShareMenu(false)}
+              />
+              
+              <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden z-20">
+                <button
+                  onClick={() => handleShare('editor')}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 border-b border-gray-700"
+                >
+                  <span className="text-2xl">✏️</span>
+                  <div className="flex-1">
+                    <div className="text-white font-medium">Compartilhar como Editor</div>
+                    <div className="text-xs text-gray-400">Poderá adicionar e remover itens</div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => handleShare('viewer')}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3"
+                >
+                  <span className="text-2xl">👁️</span>
+                  <div className="flex-1">
+                    <div className="text-white font-medium">Compartilhar como Visualizador</div>
+                    <div className="text-xs text-gray-400">Acesso somente leitura</div>
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

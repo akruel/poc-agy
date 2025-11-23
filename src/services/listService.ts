@@ -105,7 +105,7 @@ export const listService = {
     if (error) throw error;
   },
 
-  async joinList(listId: string, memberName: string): Promise<void> {
+  async joinList(listId: string, memberName: string, role: 'editor' | 'viewer' = 'viewer'): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -125,7 +125,7 @@ export const listService = {
         {
           list_id: listId,
           user_id: user.id,
-          role: 'viewer', // Default role
+          role, // Use provided role
           member_name: memberName,
         },
       ]);
@@ -133,8 +133,8 @@ export const listService = {
     if (error) throw error;
   },
   
-  getShareUrl(listId: string): string {
-    return `${window.location.origin}/lists/${listId}/join`;
+  getShareUrl(listId: string, role: 'editor' | 'viewer'): string {
+    return `${window.location.origin}/lists/${listId}/join?role=${role}`;
   },
 
   async getListName(listId: string): Promise<string> {
