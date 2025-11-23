@@ -11,7 +11,6 @@ import { MyList } from './pages/MyList';
 import { Details } from './pages/Details';
 
 import { SharedList } from './pages/SharedList';
-import { ListDetailsPage } from './pages/ListDetailsPage';
 import { JoinListPage } from './pages/JoinListPage';
 
 function App() {
@@ -36,7 +35,7 @@ function App() {
           <Route path="lists" element={<MyList />} />
           <Route path="shared" element={<SharedList />} />
           <Route path="details/:type/:id" element={<Details />} />
-          <Route path="lists/:id" element={<ListDetailsPage />} />
+          <Route path="lists/:id" element={<MyList />} />
           <Route path="lists/:id/join" element={<JoinListPage />} />
         </Route>
       </Routes>

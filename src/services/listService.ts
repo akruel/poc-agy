@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { List, ListItem, ContentItem } from '../types';
+import type { List, ListItem, ContentItem, ListMember } from '../types';
 
 export const listService = {
   async createList(name: string): Promise<List> {
@@ -32,19 +32,25 @@ export const listService = {
     }));
   },
 
-  async getListDetails(id: string): Promise<{ list: List; items: ListItem[] }> {
+  async getListDetails(id: string): Promise<{ list: List; items: ListItem[]; members: ListMember[] }> {
     const { data: list, error: listError } = await supabase
       .from('lists')
       .select(`
         *,
-        list_members!inner (
-          role
+        list_members (
+          user_id,
+          role,
+          member_name
         )
       `)
       .eq('id', id)
       .single();
 
     if (listError) throw listError;
+
+    // Get current user's role
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserMember = list.list_members.find((m: any) => m.user_id === user?.id);
 
     const { data: items, error: itemsError } = await supabase
       .from('list_items')
@@ -56,9 +62,10 @@ export const listService = {
     return {
       list: {
         ...list,
-        role: list.list_members[0].role,
+        role: currentUserMember?.role || 'viewer',
       },
       items,
+      members: list.list_members,
     };
   },
 
@@ -85,7 +92,7 @@ export const listService = {
     if (error) throw error;
   },
 
-  async joinList(listId: string): Promise<void> {
+  async joinList(listId: string, memberName: string): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -106,6 +113,7 @@ export const listService = {
           list_id: listId,
           user_id: user.id,
           role: 'viewer', // Default role
+          member_name: memberName,
         },
       ]);
 
@@ -114,5 +122,11 @@ export const listService = {
   
   getShareUrl(listId: string): string {
     return `${window.location.origin}/lists/${listId}/join`;
+  },
+
+  async getListName(listId: string): Promise<string> {
+    const { data, error } = await supabase.rpc('get_list_name', { list_id: listId });
+    if (error) throw error;
+    return data;
   }
 };

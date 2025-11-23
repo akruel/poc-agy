@@ -1,20 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { supabaseService } from '../services/supabase';
 import { MovieCard } from '../components/MovieCard';
 import { CustomLists } from '../components/CustomLists';
+import { ListDetailsView } from '../components/ListDetailsView';
 import { Share2, Check, Eye, EyeOff, List, LayoutGrid } from 'lucide-react';
 
 type FilterType = 'all' | 'watched' | 'unwatched';
 type TabType = 'watchlist' | 'custom';
 
 export const MyList: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { myList, isWatched } = useStore();
   const [copied, setCopied] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [activeTab, setActiveTab] = useState<TabType>('watchlist');
+  const [activeTab, setActiveTab] = useState<TabType>(id ? 'custom' : 'watchlist');
 
   const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setActiveTab('custom');
+    }
+  }, [id]);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    if (id) {
+      navigate('/lists');
+    }
+  };
 
   const handleShare = async () => {
     try {
@@ -47,7 +64,7 @@ export const MyList: React.FC = () => {
 
       <div className="flex gap-4 mb-8 border-b border-gray-800 pb-1">
         <button
-          onClick={() => setActiveTab('watchlist')}
+          onClick={() => handleTabChange('watchlist')}
           className={`pb-3 px-2 text-sm font-medium transition-colors relative ${
             activeTab === 'watchlist' ? 'text-purple-500' : 'text-gray-400 hover:text-gray-300'
           }`}
@@ -61,7 +78,7 @@ export const MyList: React.FC = () => {
           )}
         </button>
         <button
-          onClick={() => setActiveTab('custom')}
+          onClick={() => handleTabChange('custom')}
           className={`pb-3 px-2 text-sm font-medium transition-colors relative ${
             activeTab === 'custom' ? 'text-purple-500' : 'text-gray-400 hover:text-gray-300'
           }`}
@@ -145,7 +162,7 @@ export const MyList: React.FC = () => {
           )}
         </>
       ) : (
-        <CustomLists />
+        id ? <ListDetailsView id={id} /> : <CustomLists />
       )}
     </div>
   );

@@ -34,6 +34,7 @@ export interface ListMember {
   list_id: string;
   user_id: string;
   role: 'owner' | 'editor' | 'viewer';
+  member_name?: string;
   created_at: string;
 }
 

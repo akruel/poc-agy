@@ -20,19 +20,25 @@ export const Layout: React.FC = () => {
             CinePWA
           </Link>
           <nav className="hidden md:flex gap-6">
-            {navItems.map((item) => (
-              <Link 
-                key={item.path} 
-                to={item.path}
-                className={clsx(
-                  "flex items-center gap-2 hover:text-purple-400 transition-colors",
-                  location.pathname === item.path ? "text-purple-500 font-medium" : "text-gray-400"
-                )}
-              >
-                <item.icon size={20} />
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = item.path === '/' 
+                ? location.pathname === '/' 
+                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              
+              return (
+                <Link 
+                  key={item.path} 
+                  to={item.path}
+                  className={clsx(
+                    "flex items-center gap-2 hover:text-purple-400 transition-colors",
+                    isActive ? "text-purple-500 font-medium" : "text-gray-400"
+                  )}
+                >
+                  <item.icon size={20} />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>
@@ -44,19 +50,25 @@ export const Layout: React.FC = () => {
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 pb-safe">
         <div className="flex justify-around items-center h-16">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
-              className={clsx(
-                "flex flex-col items-center gap-1 text-xs",
-                location.pathname === item.path ? "text-purple-500" : "text-gray-500"
-              )}
-            >
-              <item.icon size={24} />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = item.path === '/' 
+              ? location.pathname === '/' 
+              : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+
+            return (
+              <Link 
+                key={item.path} 
+                to={item.path}
+                className={clsx(
+                  "flex flex-col items-center gap-1 text-xs",
+                  isActive ? "text-purple-500" : "text-gray-500"
+                )}
+              >
+                <item.icon size={24} />
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </div>
