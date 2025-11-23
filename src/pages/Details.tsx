@@ -107,9 +107,9 @@ export const Details: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 mt-8 grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="container mx-auto px-4 mt-8">
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <button 
               onClick={handleToggleList}
               className={`py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors ${
@@ -132,7 +132,7 @@ export const Details: React.FC = () => {
               {watched ? <Eye size={20} /> : <EyeOff size={20} />} 
               {watched ? 'Assistido' : 'Marcar'}
             </button>
-            <button className="bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors col-span-2 md:col-span-1">
+            <button className="bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors">
               <Share2 size={20} /> Compartilhar
             </button>
           </div>
@@ -243,8 +243,9 @@ export const Details: React.FC = () => {
           )}
         </div>
 
-        {/* Sidebar: Where to Watch */}
-        <div className="space-y-6">
+        {/* Sidebar Grid - Side by side on desktop, stacked on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          {/* Sidebar: Where to Watch */}
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
             <h2 className="text-xl font-bold mb-4">Onde Assistir</h2>
             

@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
+import { authService } from './services/auth';
+import { useStore } from './store/useStore';
 
 // Placeholders for other pages to avoid build errors
 import { Search } from './pages/Search';
@@ -10,6 +13,18 @@ import { Details } from './pages/Details';
 import { SharedList } from './pages/SharedList';
 
 function App() {
+  const syncWithSupabase = useStore((state) => state.syncWithSupabase);
+
+  useEffect(() => {
+    const init = async () => {
+      const userId = await authService.initializeAuth();
+      if (userId) {
+        await syncWithSupabase();
+      }
+    };
+    init();
+  }, [syncWithSupabase]);
+
   return (
     <BrowserRouter>
       <Routes>
