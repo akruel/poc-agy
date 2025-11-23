@@ -107,11 +107,13 @@ export const ListSelectionModal: React.FC<ListSelectionModalProps> = ({ isOpen, 
               <div className="h-px bg-gray-800 my-2 mx-3" />
 
               {/* Custom Lists */}
-              {lists.map(list => {
-                const isMember = !!membership[list.id];
-                const isToggling = toggling[list.id];
-                
-                return (
+              {lists
+                .filter(list => list.role === 'owner' || list.role === 'editor')
+                .map(list => {
+                  const isMember = !!membership[list.id];
+                  const isToggling = toggling[list.id];
+                  
+                  return (
                   <button
                     key={list.id}
                     onClick={() => handleToggleCustomList(list.id)}

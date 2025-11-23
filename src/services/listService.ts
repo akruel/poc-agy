@@ -27,22 +27,34 @@ export const listService = {
   },
 
   async getLists(): Promise<List[]> {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     // Get lists where user is a member
     const { data, error } = await supabase
       .from('lists')
       .select(`
         *,
         list_members!inner (
+          user_id,
           role
         )
       `);
 
     if (error) throw error;
 
-    return data.map((list: ListWithMembers) => ({
-      ...list,
-      role: list.list_members[0].role,
-    }));
+    const result = data.map((list: ListWithMembers) => {
+      // Find the current user's role in this list
+      const currentUserMember = list.list_members.find((m) => m.user_id === user.id);
+      
+      return {
+        ...list,
+        role: currentUserMember?.role || 'viewer',
+      };
+    });
+
+    return result;
   },
 
   async getListDetails(id: string): Promise<{ list: List; items: ListItem[]; members: ListMember[] }> {
