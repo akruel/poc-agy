@@ -5,6 +5,23 @@ create table if not exists public.lists (
   items jsonb not null
 );
 
+-- Enable Row Level Security for lists
+alter table public.lists enable row level security;
+
+-- Policies for lists (Anonymous/Public)
+-- 1. Allow anyone to read lists (needed for sharing)
+create policy "Public lists are viewable by everyone"
+  on public.lists for select
+  using (true);
+
+-- 2. Allow anyone to create a list
+create policy "Anyone can create a list"
+  on public.lists for insert
+  with check (true);
+
+-- Note: Updates are currently disabled to prevent unauthorized modifications.
+-- If you need editable anonymous lists, we'll need to store a secret token.
+
 -- Create the user_interactions table
 create table if not exists public.user_interactions (
   id uuid default gen_random_uuid() primary key,
