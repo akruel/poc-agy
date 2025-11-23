@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { authService } from './services/auth';
@@ -27,7 +28,21 @@ function App() {
   }, [syncWithSupabase]);
 
   return (
-    <BrowserRouter>
+    <>
+      <Toaster 
+        position="top-center"
+        expand={false}
+        richColors
+        closeButton
+        toastOptions={{
+          style: {
+            background: 'rgb(31 41 55)',
+            border: '1px solid rgb(55 65 81)',
+            color: 'rgb(243 244 246)',
+          },
+        }}
+      />
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
@@ -39,7 +54,8 @@ function App() {
           <Route path="lists/:id/join" element={<JoinListPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </>
   );
 }
 

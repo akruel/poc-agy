@@ -5,6 +5,7 @@ import { listService } from '../services/listService';
 import { tmdb } from '../services/tmdb';
 import type { List, ListItem, ListMember } from '../types';
 import { MovieCard } from './MovieCard';
+import { toast } from 'sonner';
 
 interface ListDetailsViewProps {
   id: string;
@@ -88,7 +89,7 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
       setItems(items.filter(i => i.id !== itemId));
     } catch (err) {
       console.error(err);
-      alert('Failed to remove item');
+      toast.error('Falha ao remover item');
     }
   };
 

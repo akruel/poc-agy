@@ -6,6 +6,7 @@ import { MovieCard } from '../components/MovieCard';
 import { CustomLists } from '../components/CustomLists';
 import { ListDetailsView } from '../components/ListDetailsView';
 import { Share2, Check, Eye, EyeOff, List, LayoutGrid } from 'lucide-react';
+import { toast } from 'sonner';
 
 type FilterType = 'all' | 'watched' | 'unwatched';
 type TabType = 'watchlist' | 'custom';
@@ -44,7 +45,7 @@ export const MyList: React.FC = () => {
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error sharing list:', error);
-      alert('Erro ao compartilhar a lista. Tente novamente.');
+      toast.error('Erro ao compartilhar a lista. Tente novamente.');
     } finally {
       setSharing(false);
     }
