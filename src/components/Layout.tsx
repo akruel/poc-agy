@@ -9,7 +9,7 @@ export const Layout: React.FC = () => {
   const navItems = [
     { icon: Home, label: 'Início', path: '/' },
     { icon: Search, label: 'Buscar', path: '/search' },
-    { icon: List, label: 'Minha Lista', path: '/my-list' },
+    { icon: List, label: 'Minhas Listas', path: '/lists' },
   ];
 
   return (

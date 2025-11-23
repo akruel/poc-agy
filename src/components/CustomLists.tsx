@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Users } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
-export function ListsPage() {
+export function CustomLists() {
   const { lists, fetchLists, createList } = useStore();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -22,15 +22,15 @@ export function ListsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-24">
+    <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">My Lists</h1>
+        <h2 className="text-2xl font-bold text-white">Listas Personalizadas</h2>
         <button
           onClick={() => setIsCreating(true)}
           className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/80 transition-colors"
         >
           <Plus size={20} />
-          New List
+          Nova Lista
         </button>
       </div>
 
@@ -41,7 +41,7 @@ export function ListsPage() {
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
-              placeholder="List Name"
+              placeholder="Nome da Lista"
               className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               autoFocus
             />
@@ -49,14 +49,14 @@ export function ListsPage() {
               type="submit"
               className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors"
             >
-              Create
+              Criar
             </button>
             <button
               type="button"
               onClick={() => setIsCreating(false)}
               className="text-gray-400 hover:text-white px-4 py-2"
             >
-              Cancel
+              Cancelar
             </button>
           </form>
         </div>
@@ -76,22 +76,22 @@ export function ListsPage() {
               <span className={`text-xs px-2 py-1 rounded-full ${
                 list.role === 'owner' ? 'bg-primary/20 text-primary' : 'bg-gray-600 text-gray-300'
               }`}>
-                {list.role}
+                {list.role === 'owner' ? 'Dono' : 'Visualizador'}
               </span>
             </div>
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <Users size={16} />
-              <span>Shared List</span>
+              <span>Lista Compartilhada</span>
             </div>
             <div className="mt-4 text-xs text-gray-500">
-              Created {new Date(list.created_at).toLocaleDateString()}
+              Criado em {new Date(list.created_at).toLocaleDateString()}
             </div>
           </Link>
         ))}
 
         {lists.length === 0 && !isCreating && (
           <div className="col-span-full text-center py-12 text-gray-500">
-            <p>You haven't created any lists yet.</p>
+            <p>Você ainda não criou nenhuma lista personalizada.</p>
           </div>
         )}
       </div>

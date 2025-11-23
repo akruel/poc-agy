@@ -102,7 +102,7 @@ export function ListDetailsPage() {
             className="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
           >
             <Share2 size={20} />
-            Share
+            Compartilhar Lista
           </button>
           {/* TODO: Add item button could open a search modal or redirect to search with list context */}
         </div>
