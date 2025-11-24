@@ -14,54 +14,42 @@ export const userContentService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Get existing interactions to avoid duplicates
-    const { data: existing } = await supabase
-      .from('user_interactions')
-      .select('content_id, interaction_type, content_type');
+    // 1. Get existing data to avoid duplicates
+    const [
+      { data: watchlistData },
+      { data: watchedMoviesData },
+      { data: watchedEpisodesData }
+    ] = await Promise.all([
+      supabase.from('watchlists').select('tmdb_id'),
+      supabase.from('watched_movies').select('tmdb_id'),
+      supabase.from('watched_episodes').select('tmdb_episode_id')
+    ]);
 
-    const existingWatchlist = new Set(
-      existing
-        ?.filter(i => i.interaction_type === 'watchlist')
-        .map(i => i.content_id)
-    );
-    
-    const existingWatched = new Set(
-      existing
-        ?.filter(i => i.interaction_type === 'watched' && i.content_type !== 'episode')
-        .map(i => i.content_id)
-    );
+    const existingWatchlist = new Set(watchlistData?.map(i => i.tmdb_id));
+    const existingWatchedMovies = new Set(watchedMoviesData?.map(i => i.tmdb_id));
+    const existingWatchedEpisodes = new Set(watchedEpisodesData?.map(i => i.tmdb_episode_id));
 
-    const existingWatchedEpisodes = new Set(
-      existing
-        ?.filter(i => i.interaction_type === 'watched' && i.content_type === 'episode')
-        .map(i => i.content_id)
-    );
-
-    const updates = [];
+    const watchlistUpdates = [];
+    const watchedMoviesUpdates = [];
+    const watchedEpisodesUpdates = [];
 
     // 2. Prepare watchlist inserts
     for (const item of localList) {
       if (!existingWatchlist.has(item.id)) {
-        updates.push({
+        watchlistUpdates.push({
           user_id: user.id,
-          content_id: item.id,
-          content_type: item.media_type,
-          interaction_type: 'watchlist',
-          metadata: item
+          tmdb_id: item.id,
+          media_type: item.media_type
         });
       }
     }
 
-    // 3. Prepare watched inserts (movies/tv)
+    // 3. Prepare watched movies inserts
     for (const id of localWatchedIds) {
-      if (!existingWatched.has(id)) {
-        const item = localList.find(i => i.id === id);
-        updates.push({
+      if (!existingWatchedMovies.has(id)) {
+        watchedMoviesUpdates.push({
           user_id: user.id,
-          content_id: id,
-          content_type: item?.media_type || 'movie',
-          interaction_type: 'watched',
-          metadata: item || {}
+          tmdb_id: id
         });
       }
     }
@@ -70,93 +58,99 @@ export const userContentService = {
     for (const [showId, episodesMap] of Object.entries(localWatchedEpisodes)) {
       for (const [episodeId, metadata] of Object.entries(episodesMap)) {
         if (!existingWatchedEpisodes.has(Number(episodeId))) {
-          updates.push({
+          watchedEpisodesUpdates.push({
             user_id: user.id,
-            content_id: Number(episodeId),
-            content_type: 'episode',
-            interaction_type: 'watched',
-            metadata: { 
-              show_id: Number(showId),
-              season_number: metadata.season_number,
-              episode_number: metadata.episode_number
-            }
+            tmdb_episode_id: Number(episodeId),
+            tmdb_show_id: Number(showId),
+            season_number: metadata.season_number,
+            episode_number: metadata.episode_number
           });
         }
       }
     }
 
-    if (updates.length > 0) {
-      const { error } = await supabase
-        .from('user_interactions')
-        .insert(updates);
-      
-      if (error) console.error('Error syncing data:', error);
+    // Execute updates in parallel
+    const promises = [];
+    if (watchlistUpdates.length > 0) {
+      promises.push(supabase.from('watchlists').insert(watchlistUpdates));
+    }
+    if (watchedMoviesUpdates.length > 0) {
+      promises.push(supabase.from('watched_movies').insert(watchedMoviesUpdates));
+    }
+    if (watchedEpisodesUpdates.length > 0) {
+      promises.push(supabase.from('watched_episodes').insert(watchedEpisodesUpdates));
+    }
+
+    if (promises.length > 0) {
+      const results = await Promise.all(promises);
+      results.forEach(({ error }) => {
+        if (error) console.error('Error syncing data:', error);
+      });
     }
   },
 
   async getUserContent() {
-    const { data, error } = await supabase
-      .from('user_interactions')
-      .select('*');
+    const [
+      { data: watchlistData, error: watchlistError },
+      { data: watchedMoviesData, error: watchedMoviesError },
+      { data: watchedEpisodesData, error: watchedEpisodesError },
+      { data: seriesCacheData, error: seriesCacheError }
+    ] = await Promise.all([
+      supabase.from('watchlists').select('*'),
+      supabase.from('watched_movies').select('*'),
+      supabase.from('watched_episodes').select('*'),
+      supabase.from('series_cache').select('*')
+    ]);
 
-    if (error) {
-      console.error('Error fetching user content:', error);
+    if (watchlistError || watchedMoviesError || watchedEpisodesError || seriesCacheError) {
+      console.error('Error fetching user content:', { watchlistError, watchedMoviesError, watchedEpisodesError, seriesCacheError });
       return { watchlist: [], watchedIds: [], watchedEpisodes: {}, seriesMetadata: {} };
     }
 
-    const watchlist = data
-      .filter(i => i.interaction_type === 'watchlist')
-      .map(i => i.metadata as ContentItem);
+    // Transform Watchlist
+    const watchlist: ContentItem[] = (watchlistData || []).map(i => ({
+      id: i.tmdb_id,
+      media_type: i.media_type as 'movie' | 'tv',
+      title: '', // Placeholder
+      name: '', 
+      poster_path: '', 
+      vote_average: 0, 
+      overview: '', 
+      release_date: '', 
+      first_air_date: '', 
+    }));
 
-    const watchedIds = data
-      .filter(i => i.interaction_type === 'watched' && i.content_type !== 'episode')
-      .map(i => i.content_id);
+    const watchedIds = (watchedMoviesData || []).map(i => i.tmdb_id);
 
     const watchedEpisodes: Record<number, Record<number, WatchedEpisodeMetadata>> = {};
     
-    data
-      .filter(i => i.interaction_type === 'watched' && i.content_type === 'episode')
-      .forEach(i => {
-        const showId = i.metadata?.show_id;
-        const seasonNumber = i.metadata?.season_number;
-        const episodeNumber = i.metadata?.episode_number;
-        
-        if (showId && typeof seasonNumber === 'number' && typeof episodeNumber === 'number') {
-          if (!watchedEpisodes[showId]) {
-            watchedEpisodes[showId] = {};
-          }
-          watchedEpisodes[showId][i.content_id] = {
-            season_number: seasonNumber,
-            episode_number: episodeNumber
-          };
-        }
-      });
+    (watchedEpisodesData || []).forEach(i => {
+      if (!watchedEpisodes[i.tmdb_show_id]) {
+        watchedEpisodes[i.tmdb_show_id] = {};
+      }
+      watchedEpisodes[i.tmdb_show_id][i.tmdb_episode_id] = {
+        season_number: i.season_number,
+        episode_number: i.episode_number
+      };
+    });
 
     const seriesMetadata: Record<number, SeriesMetadata> = {};
-    
-    data
-      .filter(i => i.content_type === 'series_metadata')
-      .forEach(i => {
-        const showId = i.content_id;
-        if (i.metadata?.total_episodes && typeof i.metadata.total_episodes === 'number') {
-          seriesMetadata[showId] = {
-            total_episodes: i.metadata.total_episodes,
-            number_of_seasons: i.metadata.number_of_seasons || 0
-          };
-        }
-      });
+    (seriesCacheData || []).forEach(i => {
+      seriesMetadata[i.tmdb_id] = {
+        total_episodes: i.total_episodes,
+        number_of_seasons: i.number_of_seasons
+      };
+    });
 
     return { watchlist, watchedIds, watchedEpisodes, seriesMetadata };
   },
 
   async addToWatchlist(item: ContentItem) {
     const { error } = await supabase
-      .from('user_interactions')
+      .from('watchlists')
       .insert({
-        content_id: item.id,
-        content_type: item.media_type,
-        interaction_type: 'watchlist',
-        metadata: item
+        tmdb_id: item.id,
+        media_type: item.media_type
       });
 
     if (error) console.error('Error adding to watchlist:', error);
@@ -164,61 +158,57 @@ export const userContentService = {
 
   async removeFromWatchlist(contentId: number) {
     const { error } = await supabase
-      .from('user_interactions')
+      .from('watchlists')
       .delete()
-      .match({ 
-        content_id: contentId, 
-        interaction_type: 'watchlist' 
-      });
+      .match({ tmdb_id: contentId });
 
     if (error) console.error('Error removing from watchlist:', error);
   },
 
   async markAsWatched(contentId: number, contentType: ContentType = 'movie', metadata: Record<string, unknown> = {}) {
-    const { error } = await supabase
-      .from('user_interactions')
-      .insert({
-        content_id: contentId,
-        content_type: contentType,
-        interaction_type: 'watched',
-        metadata
-      });
-
-    if (error) console.error('Error marking as watched:', error);
+    if (contentType === 'movie') {
+      const { error } = await supabase
+        .from('watched_movies')
+        .insert({
+          tmdb_id: contentId
+        });
+      if (error) console.error('Error marking movie as watched:', error);
+    } else if (contentType === 'episode') {
+      const { error } = await supabase
+        .from('watched_episodes')
+        .insert({
+          tmdb_episode_id: contentId,
+          tmdb_show_id: metadata.show_id,
+          season_number: metadata.season_number,
+          episode_number: metadata.episode_number,
+        });
+      if (error) console.error('Error marking episode as watched:', error);
+    }
   },
 
   async markAsUnwatched(contentId: number) {
-    const { error } = await supabase
-      .from('user_interactions')
+    const { error: movieError } = await supabase
+      .from('watched_movies')
       .delete()
-      .match({ 
-        content_id: contentId, 
-        interaction_type: 'watched' 
-      });
+      .eq('tmdb_id', contentId);
 
-    if (error) console.error('Error marking as unwatched:', error);
+    const { error: episodeError } = await supabase
+      .from('watched_episodes')
+      .delete()
+      .eq('tmdb_episode_id', contentId);
+   
+    if (movieError) console.error('Error marking movie as unwatched:', movieError);
+    if (episodeError) console.error('Error marking episode as unwatched:', episodeError);
   },
 
   async saveSeriesMetadata(showId: number, metadata: SeriesMetadata) {
-    // Upsert series metadata - delete old, insert new
-    await supabase
-      .from('user_interactions')
-      .delete()
-      .match({ 
-        content_id: showId, 
-        content_type: 'series_metadata' 
-      });
-
     const { error } = await supabase
-      .from('user_interactions')
-      .insert({
-        content_id: showId,
-        content_type: 'series_metadata',
-        interaction_type: 'watchlist', // Using watchlist as a placeholder
-        metadata: {
-          total_episodes: metadata.total_episodes,
-          number_of_seasons: metadata.number_of_seasons
-        }
+      .from('series_cache')
+      .upsert({
+        tmdb_id: showId,
+        total_episodes: metadata.total_episodes,
+        number_of_seasons: metadata.number_of_seasons,
+        updated_at: new Date().toISOString()
       });
 
     if (error) console.error('Error saving series metadata:', error);
