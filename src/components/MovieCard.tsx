@@ -5,6 +5,8 @@ import { Star, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useSeriesProgress } from '../hooks/useSeriesProgress';
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface MovieCardProps {
   item: ContentItem;
@@ -39,43 +41,47 @@ export const MovieCard: React.FC<MovieCardProps> = ({ item, showProgress = false
   return (
     <Link 
       to={`/details/${item.media_type}/${item.id}`}
-      className="group relative block bg-gray-800 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-200 shadow-lg"
+      className="block"
     >
-      <div className="aspect-[2/3] w-full">
-        <img 
-          src={tmdb.getImageUrl(item.poster_path, 'w500')} 
-          alt={title}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-        {watched && (
-          <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-2 shadow-lg">
-            <Check size={16} />
-          </div>
-        )}
-        {shouldShowProgress && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-              title={`${watchedCount} de ${seriesMetadata?.total_episodes} episódios (${progressPercentage}%)`}
-            />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <span className="text-white font-semibold px-4 py-2 bg-primary rounded-full">Ver Detalhes</span>
-        </div>
-      </div>
-      <div className="p-3">
-        <h3 className="font-bold text-white truncate" title={title}>{title}</h3>
-        <div className="flex items-center justify-between text-gray-400 text-sm mt-1">
-          <span>{year}</span>
-          <div className="flex items-center gap-1 text-yellow-400">
-            <Star size={14} fill="currentColor" />
-            <span>{(item.vote_average || 0).toFixed(1)}</span>
+      <Card className="group relative overflow-hidden hover:scale-105 transition-transform duration-200 shadow-lg border-0 bg-card">
+        <div className="aspect-[2/3] w-full relative">
+          <img 
+            src={tmdb.getImageUrl(item.poster_path, 'w500')} 
+            alt={title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          {watched && (
+            <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-2 shadow-lg">
+              <Check size={16} />
+            </div>
+          )}
+          {shouldShowProgress && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+                title={`${watchedCount} de ${seriesMetadata?.total_episodes} episódios (${progressPercentage}%)`}
+              />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Badge variant="secondary" className="px-4 py-2 text-sm font-semibold">
+              Ver Detalhes
+            </Badge>
           </div>
         </div>
-      </div>
+        <CardContent className="p-3">
+          <h3 className="font-bold text-foreground truncate" title={title}>{title}</h3>
+          <div className="flex items-center justify-between text-muted-foreground text-sm mt-1">
+            <span>{year}</span>
+            <div className="flex items-center gap-1 text-yellow-400">
+              <Star size={14} fill="currentColor" />
+              <span>{(item.vote_average || 0).toFixed(1)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 };

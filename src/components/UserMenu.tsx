@@ -1,7 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
 import type { UserProfile } from '../types';
 import { authService } from '../services/auth';
 import { LogOut, User } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 
 interface UserMenuProps {
   user: UserProfile;
@@ -9,67 +18,38 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user, onLogout }: UserMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   const handleLogout = async () => {
     await authService.signOut();
     onLogout();
-    setIsOpen(false);
   };
 
   return (
-    <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-800 transition-colors"
-      >
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={user.displayName || 'User'}
-            className="w-8 h-8 rounded-full border border-gray-700"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center border border-gray-600">
-            <User className="w-4 h-4 text-gray-300" />
-          </div>
-        )}
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-4 py-3 border-b border-gray-800">
-            <p className="text-sm font-medium text-white truncate">
-              {user.displayName || 'Usuário'}
-            </p>
-            <p className="text-xs text-gray-400 truncate">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatarUrl || ''} alt={user.displayName || 'User'} />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user.displayName || 'Usuário'}</p>
+            <p className="text-xs leading-none text-muted-foreground">
               {user.email || 'Sem email'}
             </p>
           </div>
-          
-          <button
-            onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sair
-          </button>
-        </div>
-      )}
-    </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Sair</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

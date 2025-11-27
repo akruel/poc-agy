@@ -4,6 +4,9 @@ import { authService } from '../services/auth';
 import { UserMenu } from './UserMenu';
 import { LogIn, Mail, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function LoginButton() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -50,7 +53,7 @@ export function LoginButton() {
   };
 
   if (loading) {
-    return <div className="w-8 h-8 rounded-full bg-gray-800 animate-pulse" />;
+    return <Skeleton className="h-9 w-24 rounded-full" />;
   }
 
   if (user && !user.isAnonymous) {
@@ -62,45 +65,49 @@ export function LoginButton() {
       <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-200">
         <form onSubmit={handleSendLink} className="flex items-center gap-2">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="pl-9 pr-3 py-1.5 bg-gray-800 border border-gray-700 rounded-full text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 w-48 sm:w-64"
+              className="pl-9 pr-3 h-9 rounded-full w-48 sm:w-64 bg-background"
               autoFocus
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={sendingLink}
-            className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            size="sm"
+            className="rounded-full"
           >
             {sendingLink ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               'Entrar'
             )}
-          </button>
+          </Button>
         </form>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setShowEmailInput(false)}
-          className="p-1.5 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+          className="h-8 w-8 rounded-full"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <button
+    <Button
       onClick={() => setShowEmailInput(true)}
-      className="flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors"
+      variant="secondary"
+      className="rounded-full"
     >
-      <LogIn className="w-4 h-4" />
+      <LogIn className="w-4 h-4 mr-2" />
       <span className="hidden sm:inline">Fazer Login</span>
-    </button>
+    </Button>
   );
 }

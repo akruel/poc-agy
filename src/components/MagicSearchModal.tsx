@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Loader2, Save } from 'lucide-react';
+import { Sparkles, Loader2, Save } from 'lucide-react';
 import { ai } from '../services/ai';
 import { tmdb } from '../services/tmdb';
 import type { ContentItem } from '../types';
 import { MovieCard } from './MovieCard';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface MagicSearchModalProps {
   isOpen: boolean;
@@ -18,8 +28,6 @@ export function MagicSearchModal({ isOpen, onClose, onSaveList }: MagicSearchMod
   const [results, setResults] = useState<ContentItem[]>([]);
   const [suggestedName, setSuggestedName] = useState('');
   const [step, setStep] = useState<'input' | 'results'>('input');
-
-  if (!isOpen) return null;
 
   const handleSuggest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,11 +79,7 @@ export function MagicSearchModal({ isOpen, onClose, onSaveList }: MagicSearchMod
     try {
       await onSaveList(suggestedName, results);
       toast.success('Lista criada com sucesso!');
-      onClose();
-      // Reset state
-      setPrompt('');
-      setResults([]);
-      setStep('input');
+      handleClose();
     } catch (error) {
       console.error(error);
       toast.error('Erro ao salvar a lista.');
@@ -93,91 +97,90 @@ export function MagicSearchModal({ isOpen, onClose, onSaveList }: MagicSearchMod
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-800 shadow-2xl">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-800">
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles size={24} />
-            <h2 className="text-xl font-bold text-white">Criar Lista Inteligente</h2>
-          </div>
-          <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors">
-            <X size={24} />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0 bg-gray-900 border-gray-800">
+        <DialogHeader className="p-6 border-b border-gray-800">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Criar Lista Inteligente
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-hidden">
           {step === 'input' ? (
-            <div className="flex flex-col items-center justify-center h-full py-12">
+            <div className="flex flex-col items-center justify-center h-full py-12 px-6">
               <p className="text-gray-400 mb-6 text-center max-w-md">
                 Descreva o que você quer assistir. A IA vai sugerir filmes ou séries baseados no seu pedido.
               </p>
-              <form onSubmit={handleSuggest} className="w-full max-w-lg">
-                <textarea
+              <form onSubmit={handleSuggest} className="w-full max-w-lg space-y-4">
+                <Textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
                   placeholder="Ex: Filmes de suspense para assistir no final de semana..."
-                  className="w-full bg-gray-800 text-white p-4 rounded-xl border border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none h-32 mb-4"
+                  className="h-32 resize-none bg-gray-800 border-gray-700 focus:border-primary"
                   autoFocus
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={isLoading || !prompt.trim()}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full"
+                  size="lg"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="animate-spin" size={20} />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Pensando...
                     </>
                   ) : (
                     <>
-                      <Sparkles size={20} />
+                      <Sparkles className="mr-2 h-5 w-5" />
                       Sugerir
                     </>
                   )}
-                </button>
+                </Button>
               </form>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1 w-full">
-                  <label className="block text-sm text-gray-400 mb-2">Nome da Lista</label>
-                  <input
-                    type="text"
-                    value={suggestedName}
-                    onChange={(e) => setSuggestedName(e.target.value)}
-                    className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-primary outline-none"
-                  />
+            <div className="flex flex-col h-full">
+              <div className="p-6 border-b border-gray-800 bg-gray-900/50">
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="text-sm text-gray-400">Nome da Lista</label>
+                    <Input
+                      type="text"
+                      value={suggestedName}
+                      onChange={(e) => setSuggestedName(e.target.value)}
+                      className="bg-gray-800 border-gray-700"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="whitespace-nowrap"
+                  >
+                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                    Salvar Lista
+                  </Button>
                 </div>
-                <button
-                  onClick={handleSave}
-                  disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 whitespace-nowrap"
-                >
-                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                  Salvar Lista
-                </button>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {results.map((item) => (
-                  <MovieCard key={item.id} item={item} />
-                ))}
-              </div>
-              
-              {results.length === 0 && (
-                <div className="text-center text-gray-500 py-12">
-                  Nenhum resultado encontrado. Tente outro pedido.
+              <ScrollArea className="flex-1 p-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {results.map((item) => (
+                    <MovieCard key={item.id} item={item} />
+                  ))}
                 </div>
-              )}
+                
+                {results.length === 0 && (
+                  <div className="text-center text-gray-500 py-12">
+                    Nenhum resultado encontrado. Tente outro pedido.
+                  </div>
+                )}
+              </ScrollArea>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

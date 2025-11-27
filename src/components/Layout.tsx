@@ -1,4 +1,3 @@
-
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Home, Search, List } from 'lucide-react';
 import clsx from 'clsx';
@@ -14,8 +13,8 @@ export const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white pb-20 md:pb-0">
-      <header className="bg-gray-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-800">
+    <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
+      <header className="bg-background/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
             ListFlix
@@ -31,8 +30,8 @@ export const Layout: React.FC = () => {
                   key={item.path} 
                   to={item.path}
                   className={clsx(
-                    "flex items-center gap-2 hover:text-purple-400 transition-colors",
-                    isActive ? "text-purple-500 font-medium" : "text-gray-400"
+                    "flex items-center gap-2 hover:text-primary transition-colors",
+                    isActive ? "text-primary font-medium" : "text-muted-foreground"
                   )}
                 >
                   <item.icon size={20} />
@@ -52,7 +51,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 pb-safe">
         <div className="flex justify-around items-center h-16">
           {navItems.map((item) => {
             const isActive = item.path === '/' 
@@ -65,7 +64,7 @@ export const Layout: React.FC = () => {
                 to={item.path}
                 className={clsx(
                   "flex flex-col items-center gap-1 text-xs",
-                  isActive ? "text-purple-500" : "text-gray-500"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 <item.icon size={24} />

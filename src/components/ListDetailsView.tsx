@@ -8,27 +8,37 @@ import type { List, ListItem, ListMember } from '../types';
 import { MovieCard } from './MovieCard';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 
 interface ListDetailsViewProps {
   id: string;
 }
 
 const ListDetailsSkeleton = () => (
-  <div className="animate-pulse">
-    <div className="flex justify-between items-start mb-8">
-      <div className="w-full">
-        <div className="h-10 bg-gray-800 rounded w-1/3 mb-4"></div>
-        <div className="h-5 bg-gray-800 rounded w-1/4 mb-4"></div>
+  <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="flex justify-between items-start">
+      <div className="space-y-4 w-full max-w-lg">
+        <Skeleton className="h-10 w-2/3" />
+        <Skeleton className="h-5 w-1/2" />
         <div className="flex gap-2">
-          <div className="h-6 w-20 bg-gray-800 rounded-full"></div>
-          <div className="h-6 w-20 bg-gray-800 rounded-full"></div>
+          <Skeleton className="h-6 w-20 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
       </div>
-      <div className="h-10 w-32 bg-gray-800 rounded"></div>
+      <Skeleton className="h-10 w-32" />
     </div>
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
       {[...Array(10)].map((_, i) => (
-        <div key={i} className="aspect-[2/3] bg-gray-800 rounded-lg"></div>
+        <Skeleton key={i} className="aspect-[2/3] rounded-xl" />
       ))}
     </div>
   </div>
@@ -43,7 +53,6 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -87,7 +96,6 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
     const url = listService.getShareUrl(list.id, role);
     await navigator.clipboard.writeText(url);
     setCopied(true);
-    setShowShareMenu(false);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -159,14 +167,15 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
   if (error || !list) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl text-red-500 mb-4">{error || 'List not found'}</h2>
-        <button
+        <h2 className="text-2xl text-destructive mb-4">{error || 'List not found'}</h2>
+        <Button
+          variant="link"
           onClick={() => navigate('/lists')}
-          className="text-primary hover:underline flex items-center justify-center gap-2 mx-auto"
+          className="mx-auto"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar para minhas listas
-        </button>
+        </Button>
       </div>
     );
   }
@@ -176,55 +185,62 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
   return (
     <div className="animate-in fade-in duration-300">
       <div className="flex items-center gap-4 mb-6">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => navigate('/lists')}
-          className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-white"
           title="Voltar"
         >
-          <ArrowLeft size={24} />
-        </button>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
         <div className="flex-1">
           {isEditing ? (
             <div className="flex items-center gap-2 mb-2">
-              <input
+              <Input
                 type="text"
                 value={editingName}
                 onChange={(e) => setEditingName(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="bg-gray-800 text-white px-3 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-3xl font-bold w-full max-w-md"
+                className="text-3xl font-bold h-auto py-1 px-3 w-full max-w-md"
                 autoFocus
               />
-              <button
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={saveEditing}
-                className="p-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg transition-colors"
+                className="text-green-500 hover:text-green-600 hover:bg-green-500/10"
                 title="Salvar"
               >
-                <Check size={20} />
-              </button>
-              <button
+                <Check className="h-5 w-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={cancelEditing}
-                className="p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"
+                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                 title="Cancelar"
               >
-                <X size={20} />
-              </button>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           ) : (
             <div className="flex items-center gap-3 mb-2 group">
-              <h1 className="text-3xl font-bold text-white">{list.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{list.name}</h1>
               {list.role === 'owner' && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={startEditing}
-                  className="p-2 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Editar nome"
                 >
-                  <Pencil size={20} />
-                </button>
+                  <Pencil className="h-5 w-5" />
+                </Button>
               )}
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-4 text-sm text-gray-400">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>{items.length} items</span>
               <span>•</span>
               <span className="capitalize">
@@ -233,18 +249,19 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
             </div>
             
             {/* Members List */}
-            <div className="flex items-center gap-2 text-sm text-gray-300">
-              <Users size={16} className="text-gray-400" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users size={16} />
               <div className="flex flex-wrap gap-2">
                 {members.map(member => (
-                  <span 
+                  <Badge 
                     key={member.user_id} 
-                    className={`px-2 py-1 rounded-full text-xs border flex items-center gap-1 ${
+                    variant="outline"
+                    className={`gap-1 ${
                       member.role === 'owner' 
-                        ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400' 
+                        ? 'border-yellow-500/50 text-yellow-500' 
                         : member.role === 'editor'
-                        ? 'bg-purple-600/20 border-purple-500/50 text-purple-400'
-                        : 'bg-blue-600/20 border-blue-500/50 text-blue-400'
+                        ? 'border-purple-500/50 text-purple-500'
+                        : 'border-blue-500/50 text-blue-500'
                     }`}
                     title={`Role: ${member.role}`}
                   >
@@ -252,7 +269,7 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
                     {member.role === 'owner' && <span>★</span>}
                     {member.role === 'editor' && <span>✏️</span>}
                     {member.role === 'viewer' && <span>👁️</span>}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -261,60 +278,40 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
         
           {/* Share Button with Dropdown */}
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <button
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              {copied ? <Check size={20} className="text-white" /> : <Share2 size={20} />}
-              {copied ? 'Copiado!' : 'Compartilhar'}
-            </button>
-            
-            {/* Dropdown Menu */}
-            {showShareMenu && (
-              <>
-                {/* Backdrop to close menu */}
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setShowShareMenu(false)}
-                />
-                
-                <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden z-20">
-                  <button
-                    onClick={() => handleShare('editor')}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 border-b border-gray-700"
-                  >
-                    <span className="text-2xl">✏️</span>
-                    <div className="flex-1">
-                      <div className="text-white font-medium">Compartilhar como Editor</div>
-                      <div className="text-xs text-gray-400">Poderá adicionar e remover itens</div>
-                    </div>
-                  </button>
-                  
-                  <button
-                    onClick={() => handleShare('viewer')}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3"
-                  >
-                    <span className="text-2xl">👁️</span>
-                    <div className="flex-1">
-                      <div className="text-white font-medium">Compartilhar como Visualizador</div>
-                      <div className="text-xs text-gray-400">Acesso somente leitura</div>
-                    </div>
-                  </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                {copied ? <Check className="mr-2 h-4 w-4" /> : <Share2 className="mr-2 h-4 w-4" />}
+                {copied ? 'Copiado!' : 'Compartilhar'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuItem onClick={() => handleShare('editor')} className="gap-3 py-3 cursor-pointer">
+                <span className="text-xl">✏️</span>
+                <div>
+                  <div className="font-medium">Compartilhar como Editor</div>
+                  <div className="text-xs text-muted-foreground">Poderá adicionar e remover itens</div>
                 </div>
-              </>
-            )}
-          </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('viewer')} className="gap-3 py-3 cursor-pointer">
+                <span className="text-xl">👁️</span>
+                <div>
+                  <div className="font-medium">Compartilhar como Visualizador</div>
+                  <div className="text-xs text-muted-foreground">Acesso somente leitura</div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {list.role === 'owner' && (
-            <button
+            <Button
+              variant="destructive"
               onClick={() => setShowDeleteModal(true)}
-              className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors border border-red-500/20"
               title="Excluir Lista"
             >
-              <Trash2 size={20} />
+              <Trash2 className="mr-2 h-4 w-4" />
               Excluir
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -325,28 +322,30 @@ export function ListDetailsView({ id }: ListDetailsViewProps) {
             {item.content ? (
               <MovieCard item={item.content} showProgress={true} />
             ) : (
-              <div className="bg-gray-800 rounded-lg p-4 text-center aspect-[2/3] flex items-center justify-center">
-                <p className="text-gray-400">Conteúdo indisponível</p>
+              <div className="bg-muted rounded-lg p-4 text-center aspect-[2/3] flex items-center justify-center">
+                <p className="text-muted-foreground">Conteúdo indisponível</p>
               </div>
             )}
              
              {canEdit && (
-               <button
+               <Button
+                 variant="destructive"
+                 size="icon"
                  onClick={(e) => {
                    e.preventDefault();
                    handleRemoveItem(item.id);
                  }}
-                 className="absolute top-2 right-2 bg-red-500/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-600"
+                 className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                  title="Remover item"
                >
-                 <Trash2 size={16} className="text-white" />
-               </button>
+                 <Trash2 className="h-4 w-4" />
+               </Button>
              )}
           </div>
         ))}
         
         {items.length === 0 && (
-          <div className="col-span-full text-center py-20 text-gray-500">
+          <div className="col-span-full text-center py-20 text-muted-foreground">
             <p className="text-xl mb-2">Esta lista está vazia</p>
             {canEdit && <p className="text-sm">Adicione filmes e séries para começar.</p>}
           </div>
